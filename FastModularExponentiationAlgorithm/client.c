@@ -11,6 +11,7 @@
 #include<string.h>	
 #include<sys/socket.h>
 #include<arpa/inet.h>  // for inet_addr and sockaddr_in structs
+
 char* decToBin(int decimal) {
 	// hold the value of the binary string after convertion to be returned 
 	char binary[100];
@@ -30,7 +31,7 @@ int fastModExpAlg(char* binary, int a, int n) {
 	int c = 0,
 		f = 1;
 	// Print
-	cout << "i\t\t" << "b\t\t" << "c\t\t" << "f\t\t" << endl;
+	printf("i\t\tb\t\tc\t\tf\t\t\n");
 	for (int i = strlen(binary) - 1; i >= 0; i--) {
 		// 
 		c = 2 * c;
@@ -48,7 +49,7 @@ int fastModExpAlg(char* binary, int a, int n) {
 int genPrivateKey() {
 	// a ^ b mod n 
 	int a, b, n, result;
-	char binary[100];
+	char binary [100];
 	printf("Enter a --> ");
 	scanf("%d", a);
 	printf("\nEnter b --> ");
@@ -56,7 +57,7 @@ int genPrivateKey() {
 	printf("\nEnter n --> ");
 	scanf("%d", n);
 	// convert b to binary then assign to binary string  
-	binary = decTobin(b);
+	strcpy(binary,decTobin(b));
 	// send binary string, a and n to calculate the fast modular of a to the power of b modular n
 	// by using the binary string,  the integer a and the modular number
 	// return the result 
@@ -69,10 +70,10 @@ int main(int argc , char *argv[])
 {
 	int socket_desc;    // file descripter returned by socket command
 	int read_size;
-	int keyReceived, pKb, g, q, gPKb;
+	int keyReceived, pKb, g, q, gPKb, comKey;
 	struct sockaddr_in server;    // in arpa/inet.h
 	char  server_reply[100], client_message[100], user_input;   // will need to be bigger
-	
+	char* gPKa;
 	//Create socket
 	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 
@@ -97,7 +98,7 @@ int main(int argc , char *argv[])
 
 	//Get data from keyboard and send  to server
 	printf("What do you want to send to the server. (b for bye)\n");
-	printf("Press -1 with a space sending g and q or just enter message")
+	printf("Press -1 with a space sending g and q or just enter message");
 	while(strncmp(client_message,"b",1))      // quit on "b" for "bye"
 	{
 		
@@ -112,8 +113,9 @@ int main(int argc , char *argv[])
 
 					// append the integer g to client message containing -1 already
 					// after converting the integer to character
+					strcat(client_message, " ");
 					strcat(client_message, (g + '0'));
-					strcat(client_message, ' ');
+					strcat(client_message, " ");
 					strcat(client_message, (q + '0'));
 				}
 				// check that g and q exist before processing and sending the message
@@ -123,15 +125,15 @@ int main(int argc , char *argv[])
 				}
 				else{
 					// Send the client message  
-					// Before sending key, Generate a new one by moding your key
+					// convert string of character containing the message into integer for calculation
 					pKb = itoa(client_message);
-					// generate a key using your private key and g ^ pk mod q
+					// generate a key using your private key and g ^ pkb mod q
 					gPKb = fastModExpAlg(decToBin(pKb), g, q);
-					
+					// Display private key and generated private key for debugging
 					printf("Your Private Key is %d and your Generated Key is %d", pKb, gpKb);
 					// convert the key to a character then send it to server
-					client_message = gpKb + '0';
-
+					strcpy(client_message , gpKb + '0');
+					// Send to server
 					if (send(socket_desc, &client_message, strlen(client_message), 0) < 0)
 					{
 						printf("Send failed");
@@ -145,7 +147,15 @@ int main(int argc , char *argv[])
 					{
 						printf("recv failed");
 					}
-					printf("Server  Replies: %.*s\n\n", read_size, server_reply);
+					if(server_reply[0] == 'k') {
+						// Get the string after the space then convert that into integer
+						gPKa = (strtok(NULL, " ")) + '0';
+					}
+					printf("Server  Replies: %d\n\n", read_size, gPKa);
+					// Find common key using the server key received 
+					comKey = fastModExpAlg(decToBin(gPKa), g, q);
+					// display common key
+					printf("Common key is %d", comKey);
 				}
 				
 	

@@ -142,8 +142,10 @@
     <ClInclude Include="FastModExpAlgo.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="client.c" />
     <ClCompile Include="FastModExpAlgo.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="server.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

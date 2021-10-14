@@ -71,7 +71,7 @@ int genPrivateKey() {
 
 int main(int argc , char *argv[])
 {
-	int socket_desc , new_socket , c, read_size, i, pKa, gPKa, gPKb, keyReceived;
+	int socket_desc , new_socket , c, read_size, comKey, pKa, gPKa, gPKb, keyReceived, g, q;
 	struct sockaddr_in server , client;
 	char *message, client_message[100];
 
@@ -133,37 +133,56 @@ int main(int argc , char *argv[])
 			system(list);
 			printf("\n\n");
 		}
-		// Ask user to enter their key 
-		printf("\nEnter your key --> ");
-		scanf("%d", pKa);
-		
-		// Generate a key using private key and g ^ pk mod q		
-		// convert to binary && mod private key
-		gPKa = fastModExpAlg(decTobin(pKa), g, q);
+		// check if g prime and q are defined, if not ask the client to enter the them
+		if (g >= 0 && q >= 0) {
+			// Ask user to enter their key 
+			printf("\nEnter your key --> ");
+			scanf("%d", pKa);
+			// Generate a key using server private key and g ^ pka mod q		
+			// convert to binary && mod private key
+			gPKa = fastModExpAlg(decTobin(pKa), g, q);
 
-		
-		// Find key generated from key received 
-		gPKb = fastModExpAlg(decToBin(client_message, g, q));
+			// Receive private key from client. Convert message containing the key to integer
+			gPKb = atoi(client_message);
+			// Use key received to find common key
+			comKey = fastModExpAlg(decToBin(gPKb), g, q);
+			// Display private key and generated private key
+			printf("\nYour Private Key is %d and your Generated Key is %d", pKa, gPKa);
+			// Display common key generated
+			printf("\nThe common key is %d", comKey);
 
-		printf("Your Private Key is %d and your Generated Key is %d", pKa, gPKa);
-		client_message = gPKb + '0';
+			// Specify that it's a generated key from server
+			strcpy(client_message, "k ");
+			// Convert the the server private key integer to string of character then copy it to the message back to the client
+			strcat(client_message, gPKa + '0');
+			
 
-		// send private key produced 
-		write(new_socket, client_message, read_size);
-		// Receive private key from client 
-		
-		//Send the result back to client if they match
+			// send private key produced 
+			write(new_socket, client_message, read_size);
+			
+			//Send the result back to client if they match
 
-		//for(i=0;i< read_size;i++)
-		//{
-		//	if ( i%2)
-		//		client_message[i] = 'z';
-		//}
+		}
+		else {
+			// check if g and q is included in the client message by looking at first character being -
+			if (client_message[0] == '-') {
+				// get g and q from client message by parsing them
 
-       //        	printf(" Sending back Z'd up message:  %.*s \n", read_size ,client_message);
+				// set g and q
 
-		//write(new_socket, client_message , strlen(client_message));
-		//write(new_socket, client_message , read_size);
+				// send confirmation message back
+				// copy the message to reply back to the client
+				strcpy(client_message, "g and q are set!!\n");
+			}
+			else {
+				// copy the message to reply back to the client
+				strcpy(client_message, "Error. No g prime of q set. Press -1 to enter g and q\n");
+				printf("Error. No g prime of q set. Press -1 to enter g and q\n");
+			}
+		}
+
+		write(new_socket, client_message , strlen(client_message));
+		write(new_socket, client_message , read_size);
 	}
 	
 	if(read_size == 0)
