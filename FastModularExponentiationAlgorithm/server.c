@@ -14,10 +14,64 @@
 #include<unistd.h>	//write
 #include<stdlib.h>	// for system & others
 
+char * decToBin(int decimal) {
+	// hold the value of the binary string after convertion to be returned 
+	char binary[100];
+	int i = 0;
+	// do this while n is positive, until the remainder is 0
+	while (n > 0) {
+		// get the remainder of n divided by 2
+		binary[i]= to_string(n % 2);
+		// get the new result of n
+		n = n / 2;
+		i++;
+	}
+	return binary;
+}
+
+int fastModExpAlg(char * binary, int a, int n) {
+	int c = 0,
+		f = 1;
+	// Print
+	cout << "i\t\t" << "b\t\t" << "c\t\t" << "f\t\t" << endl;
+	for (int i = strlen(binary) - 1; i >= 0; i--) {
+		// 
+		c = 2 * c;
+		f = (f * f) % n;
+		// Check that the binary digit at position i is 1 to perform ...
+		if (binary[i] == '1') {
+			c = c + 1;
+			f = (f * a) % n;
+		}
+		//printFastModTable(i, binary[i], c, f);
+	}
+	return f;
+}
+
+int genPrivateKey() {
+	// a ^ b mod n 
+	int a, b, n, result;
+	char binary [100];
+	printf("Enter a --> ");
+	scanf("%d", a);
+	printf("\nEnter b --> ");
+	scanf("%d", b);
+	printf("\nEnter n --> ");
+	scanf("%d", n);
+	// convert b to binary then assign to binary string  
+	binary = decTobin(b);
+	// send binary string, a and n to calculate the fast modular of a to the power of b modular n
+	// by using the binary string,  the integer a and the modular number
+	// return the result 
+	result = fastModExpAlg(binary, a, n);
+	printf("\n %d   ^   %d   mod   %d   =   %d\n", a, b, n, result);
+	//cout << endl << a << " ^ " << b << " mod " << n << " = " << result << endl;
+	return result;
+}
 
 int main(int argc , char *argv[])
 {
-	int socket_desc , new_socket , c, read_size, i;
+	int socket_desc , new_socket , c, read_size, i, pKa, gPKa, gPKb, keyReceived;
 	struct sockaddr_in server , client;
 	char *message, client_message[100];
 
@@ -67,7 +121,8 @@ int main(int argc , char *argv[])
 	//write(new_socket , message , strlen(message));
 	
 	//Receive a message from client
-	while( (read_size = recv(new_socket , client_message , 100 , 0)) > 0 )
+	// OLD -- while( (read_size = recv(new_socket , client_message , 100 , 0)) > 0 )
+	while ((read_size = recv(new_socket, client_message, 100, 0)) > 0)
 	{
 
 		printf("\n Client sent %2i byte message:  %.*s\n",read_size, read_size ,client_message);
@@ -78,17 +133,37 @@ int main(int argc , char *argv[])
 			system(list);
 			printf("\n\n");
 		}
-		//Send the message back to client
-		for(i=0;i< read_size;i++)
-		{
-			if ( i%2)
-				client_message[i] = 'z';
-		}
+		// Ask user to enter their key 
+		printf("\nEnter your key --> ");
+		scanf("%d", pKa);
+		
+		// Generate a key using private key and g ^ pk mod q		
+		// convert to binary && mod private key
+		gPKa = fastModExpAlg(decTobin(pKa), g, q);
 
-               	printf(" Sending back Z'd up message:  %.*s \n", read_size ,client_message);
+		
+		// Find key generated from key received 
+		gPKb = fastModExpAlg(decToBin(client_message, g, q));
+
+		printf("Your Private Key is %d and your Generated Key is %d", pKa, gPKa);
+		client_message = gPKb + '0';
+
+		// send private key produced 
+		write(new_socket, client_message, read_size);
+		// Receive private key from client 
+		
+		//Send the result back to client if they match
+
+		//for(i=0;i< read_size;i++)
+		//{
+		//	if ( i%2)
+		//		client_message[i] = 'z';
+		//}
+
+       //        	printf(" Sending back Z'd up message:  %.*s \n", read_size ,client_message);
 
 		//write(new_socket, client_message , strlen(client_message));
-		write(new_socket, client_message , read_size);
+		//write(new_socket, client_message , read_size);
 	}
 	
 	if(read_size == 0)
