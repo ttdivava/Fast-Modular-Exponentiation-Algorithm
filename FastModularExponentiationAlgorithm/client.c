@@ -17,11 +17,11 @@ char* decToBin(int decimal) {
 	char binary[100];
 	int i = 0;
 	// do this while n is positive, until the remainder is 0
-	while (n > 0) {
+	while (decimal > 0) {
 		// get the remainder of n divided by 2
-		binary[i] = to_string(n % 2);
+		binary[i] = to_string(decimal % 2);
 		// get the new result of n
-		n = n / 2;
+		decimal = decimal / 2;
 		i++;
 	}
 	return binary;
@@ -49,7 +49,7 @@ int fastModExpAlg(char* binary, int a, int n) {
 int genPrivateKey() {
 	// a ^ b mod n 
 	int a, b, n, result;
-	char binary [100];
+	char * binary ;
 	printf("Enter a --> ");
 	scanf("%d", a);
 	printf("\nEnter b --> ");
