@@ -70,10 +70,10 @@ int main(int argc , char *argv[])
 {
 	int socket_desc;    // file descripter returned by socket command
 	int read_size;
-	int keyReceived, pKb, g, q, gPKb, comKey;
+	int keyReceived, pKb, g, q, gPKb, comKey, gPKa;
 	struct sockaddr_in server;    // in arpa/inet.h
 	char  server_reply[100], client_message[100], user_input;   // will need to be bigger
-	char* gPKa;
+	char* found;
 	//Create socket
 	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 
@@ -118,21 +118,26 @@ int main(int argc , char *argv[])
 					strcat(client_message, " ");
 					strcat(client_message, (q + '0'));
 				}
+				found = strtok(client_message, " ");
 				// check that g and q exist before processing and sending the message
 				if (!(g > 0 && q > 0))
 				{
-					printf("No g prime or q set. Error, set them before to continue\n");
+					printf("No g prime or q set. Error, set them before to continue. Press -1 no enter them\n");
 				}
 				else{
-					// Send the client message  
-					// convert string of character containing the message into integer for calculation
-					pKb = itoa(client_message);
-					// generate a key using your private key and g ^ pkb mod q
-					gPKb = fastModExpAlg(decToBin(pKb), g, q);
-					// Display private key and generated private key for debugging
-					printf("Your Private Key is %d and your Generated Key is %d", pKb, gpKb);
-					// convert the key to a character then send it to server
-					strcpy(client_message , gpKb + '0');
+					// Check whether g and q is being sent by checking if the first string is 1
+					// If not -1 then no g and q is being sent process this
+					if (found != "-1") {
+						// Send the client message  
+						// convert string of character containing the message into integer for calculation
+						pKb = atoi(client_message);
+						// generate a key using your private key and g ^ pkb mod q
+						gPKb = fastModExpAlg(decToBin(pKb), g, q);
+						// Display private key and generated private key for debugging
+						printf("Your Private Key is %d and your Generated Key is %d", pKb, gPKb);
+						// convert the key to a character then send it to server
+						strcpy(client_message, gPKb + '0');
+					}		
 					// Send to server
 					if (send(socket_desc, &client_message, strlen(client_message), 0) < 0)
 					{
@@ -147,15 +152,20 @@ int main(int argc , char *argv[])
 					{
 						printf("recv failed");
 					}
-					if(server_reply[0] == 'k') {
+					found = strtok(server_reply, " ");
+					// if key k is in front of the message then generated key from the server
+					if(found == "k") {
+						found = strtok(NULL, " ");
 						// Get the string after the space then convert that into integer
-						gPKa = (strtok(NULL, " ")) + '0';
+						gPKa = atoi(found);
+						printf("Server  Replies: %d\n\n", read_size, gPKa);
+						// Find common key using the server key received 
+						comKey = fastModExpAlg(decToBin(gPKa), g, q);
+						// display common key
+						printf("Common key is %d", comKey);
 					}
-					printf("Server  Replies: %d\n\n", read_size, gPKa);
-					// Find common key using the server key received 
-					comKey = fastModExpAlg(decToBin(gPKa), g, q);
-					// display common key
-					printf("Common key is %d", comKey);
+					else
+						printf("Server  Replies: %.*s\n\n", read_size, client_message);
 				}
 				
 	

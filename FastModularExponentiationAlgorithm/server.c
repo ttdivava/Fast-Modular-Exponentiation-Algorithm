@@ -74,7 +74,7 @@ int main(int argc , char *argv[])
 	int socket_desc , new_socket , c, read_size, comKey, pKa, gPKa, gPKb, keyReceived, g, q;
 	struct sockaddr_in server , client;
 	char *message, client_message[100];
-
+	char* found;
 	char *list;	
 	list = "ls -l\n";
 
@@ -162,14 +162,21 @@ int main(int argc , char *argv[])
 			
 			//Send the result back to client if they match
 
-		}
+		}		// if g and q undefined 
 		else {
+			// looking for the space character as a separator
+			found = strtok(client_message, " ");
+			// check if client message is to add g and q with the input -1
 			// check if g and q is included in the client message by looking at first character being -
-			if (client_message[0] == '-') {
+			if (found == "-1") {
 				// get g and q from client message by parsing them
-
-				// set g and q
-
+				// return string found before the seperator " " as long as string is no NULL
+				// set g
+				found = strtok(NULL, " ");
+				g = atoi(found);
+				// set q
+				found = strtok(NULL, " ");
+				q = atoi(found);
 				// send confirmation message back
 				// copy the message to reply back to the client
 				strcpy(client_message, "g and q are set!!\n");
