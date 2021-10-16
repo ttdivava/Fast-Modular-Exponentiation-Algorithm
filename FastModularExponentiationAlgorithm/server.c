@@ -21,7 +21,7 @@ char * decToBin(int decimal) {
 	// do this while n is positive, until the remainder is 0
 	while (decimal > 0) {
 		// get the remainder of n divided by 2
-		binary[i]= to_string(decimal % 2);
+		binary[i] = (decimal % 2) + '0';
 		// get the new result of n
 		decimal = decimal / 2;
 		i++;
@@ -33,7 +33,7 @@ int fastModExpAlg(char * binary, int a, int n) {
 	int c = 0,
 		f = 1;
 	// Print
-	cout << "i\t\t" << "b\t\t" << "c\t\t" << "f\t\t" << endl;
+	printf("i\t\tb\t\tc\t\tf\t\t\n");
 	for (int i = strlen(binary) - 1; i >= 0; i--) {
 		// 
 		c = 2 * c;
@@ -48,33 +48,13 @@ int fastModExpAlg(char * binary, int a, int n) {
 	return f;
 }
 
-int genPrivateKey() {
-	// a ^ b mod n 
-	int a, b, n, result;
-	char binary [100];
-	printf("Enter a --> ");
-	scanf("%d", a);
-	printf("\nEnter b --> ");
-	scanf("%d", b);
-	printf("\nEnter n --> ");
-	scanf("%d", n);
-	// convert b to binary then assign to binary string  
-	binary = decTobin(b);
-	// send binary string, a and n to calculate the fast modular of a to the power of b modular n
-	// by using the binary string,  the integer a and the modular number
-	// return the result 
-	result = fastModExpAlg(binary, a, n);
-	printf("\n %d   ^   %d   mod   %d   =   %d\n", a, b, n, result);
-	//cout << endl << a << " ^ " << b << " mod " << n << " = " << result << endl;
-	return result;
-}
 
 int main(int argc , char *argv[])
 {
 	int socket_desc , new_socket , c, read_size, comKey, pKa, gPKa, gPKb, keyReceived, g, q;
 	struct sockaddr_in server , client;
 	char *message, client_message[100];
-	char* found;
+	char* found, * convert;
 	char *list;	
 	list = "ls -l\n";
 
@@ -137,10 +117,10 @@ int main(int argc , char *argv[])
 		if (g >= 0 && q >= 0) {
 			// Ask user to enter their key 
 			printf("\nEnter your key --> ");
-			scanf("%d", pKa);
+			scanf("%d", &pKa);
 			// Generate a key using server private key and g ^ pka mod q		
 			// convert to binary && mod private key
-			gPKa = fastModExpAlg(decTobin(pKa), g, q);
+			gPKa = fastModExpAlg(decToBin(pKa), g, q);
 
 			// Receive private key from client. Convert message containing the key to integer
 			gPKb = atoi(client_message);
@@ -154,7 +134,8 @@ int main(int argc , char *argv[])
 			// Specify that it's a generated key from server
 			strcpy(client_message, "k ");
 			// Convert the the server private key integer to string of character then copy it to the message back to the client
-			strcat(client_message, gPKa + '0');
+			convert = (gPKa + '0');
+			strcat(client_message, convert);
 			
 
 			// send private key produced 
@@ -168,7 +149,7 @@ int main(int argc , char *argv[])
 			found = strtok(client_message, " ");
 			// check if client message is to add g and q with the input -1
 			// check if g and q is included in the client message by looking at first character being -
-			if (found == "-1") {
+			if (strcmp(found,"-1") == 0) {
 				// get g and q from client message by parsing them
 				// return string found before the seperator " " as long as string is no NULL
 				// set g
