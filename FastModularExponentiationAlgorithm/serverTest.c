@@ -39,7 +39,7 @@ int fastModExpAlg(char * binary, int a, int n) {
 	int c = 0,
 		f = 1;
 	// Print
-	printf("i\t\tb\t\tc\t\tf\t\t\n");
+	printf("i \t\t b \t\t c \t\t f \t\t\n");
 	for (int i = strlen(binary) - 1; i >= 0; i--) {
 		// 
 		c = 2 * c;
@@ -155,31 +155,30 @@ int main(int argc , char *argv[])
 	}
 	// Otherwise if g and q not define
 	else{
-	    strcpy(client_message,"-1 5 7");            // TEST CASe
-	    found = (char *)malloc(strlen(client_message)+1);
-	    // looking for the first string by checking the separator 
-	   found = strtok(client_message, " ");
+	    	strcpy(client_message,"-1 5 7");            // TEST CASe
+	    	found = (char *)malloc(strlen(client_message)+1);
+	    	// looking for the first string by checking the separator 
+		found = strtok(client_message, " ");
 
-        // If not included in client message 
-    	// Send a message back to the user to ask the client to enter them
-    	// check if client message contain -1 meaning g and q are included in the client message 
-    	if (strcmp(found,"-1") == 0) {
-    		// get g and q from client message by parsing them
-    		// return string found before the seperator " " as long as string is no NULL
-    		// set g
-    		found = strtok(NULL, " ");
-    		g = atoi(found);
-    		// set q
-    		found = strtok(NULL, " ");
-    		q = atoi(found);
-    		// send confirmation message back
-    		// copy the message to reply back to the client
-    		strcpy(client_message, "g and q are set!!\n");
-    	}
-	    
+		// If not included in client message 
+		// Send a message back to the user to ask the client to enter them
+		// check if client message contain -1 meaning g and q are included in the client message 
+		if (strcmp(found,"-1") == 0) {
+			// get g and q from client message by parsing them
+			// return string found before the seperator " " as long as string is no NULL
+			// set g
+			found = strtok(NULL, " ");
+			g = atoi(found);
+			// set q
+			found = strtok(NULL, " ");
+			q = atoi(found);
+			// send confirmation message back
+			// copy the message to reply back to the client
+			strcpy(client_message, "g and q are set!!\n");
+		}
 	}
 	
-    if(read_size == 0)
+    	if(read_size == 0)
     	{
     		printf("client disconnected\n");
     		fflush(stdout);
@@ -187,8 +186,7 @@ int main(int argc , char *argv[])
 	else if(read_size == -1)
 	{
 		perror("receive failed");
-	}
-        		
+	}		
 	//Free the socket pointer
 	close(socket_desc);
 	return 0;
