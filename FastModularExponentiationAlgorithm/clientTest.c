@@ -47,33 +47,6 @@ char * decToBin (int decimal)
   return binary;
 }
 
-int genPrivateKey ()
-{
-  // a ^ b mod n 
-  int a, b, n, result;
-  char *binary;			//= (char *) malloc(100);
-  printf ("Enter a --> ");
-  scanf ("%d", &a);
-  printf ("\nEnter b --> ");
-  scanf ("%d", &b);
-  printf ("\nEnter n --> ");
-  scanf ("%d", &n);
-
-  // convert b to binary then assign to binary string  
-  //strcpy(binary,decTobin(b));
-  binary = decToBin (b);
-  printf ("Binary is now %s", binary);
-  // send binary string, a and n to calculate the fast modular of a to the power of b modular n
-  // by using the binary string,  the integer a and the modular number
-  // return the result 
-  result = fastModExpAlg (binary, a, n);
-  printf ("\n %d   ^   %d   mod   %d   =   %d\n", a, b, n, result);
-  //cout << endl << a << " ^ " << b << " mod " << n << " = " << result << endl;
-  return result;
-}
-
-
-
 int main(int argc , char *argv[])
 {
   // Client Server Data
@@ -108,7 +81,7 @@ int main(int argc , char *argv[])
 
   //Get data from keyboard and send  to server
   printf ("What do you want to send to the server. (b for bye)\n");
-  printf ("Press A with a space sending g and q or just enter message\n");
+  printf ("Press -1 with a space sending g and q or just enter message\n");
 
   while (strncmp (client_message, "b", 1))	// quit on "b" for "bye"
     {
@@ -117,7 +90,8 @@ int main(int argc , char *argv[])
       // if client message is -1 prompt user for G and Q then send to server
       // Server reply with a confirmation message that G and Q are set
       if (strcmp (client_message, "-1") == 0){
-    	  printf ("\nEnter g --> ");
+    	  // Prompt User for g and q prime
+	  printf ("\nEnter g --> ");
     	  scanf ("%d", &g);
     
     	  printf ("\nEnter q --> ");
@@ -136,7 +110,7 @@ int main(int argc , char *argv[])
       // Before Sending the message make sure(Check) that g and q are set
       if (!(g > 0 && q > 0))
         printf("No g prime or q set. Error, set them before to continue. Press -1 no enter them\n");
-      else  // Otherwise if they are set process the message
+      else  // Otherwise if g and q are set Process the message
     	{		
     	    found = (char *)malloc(strlen(client_message)+1);
     	    strcpy(found, client_message);
@@ -148,7 +122,6 @@ int main(int argc , char *argv[])
 				if (strcmp(found,"-1")) {
 					// Send the client message  
 					// convert string of character containing the message into integer for calculation
-					printf("Now sending %s ", client_message);
 					pKb = atoi(client_message);
 					// generate a key using your private key and g ^ pkb mod q
 					gPKb = fastModExpAlg(decToBin(pKb), g, q);
@@ -159,20 +132,20 @@ int main(int argc , char *argv[])
 					// copy the key generated to be sent over to the server
 					strcpy(client_message, convert);
 				}
-			//*** Case 2 message containing g and q
-			// Just send that to the server
+		//*** Case 2 message containing g and q
+		// Just send that to the server
 		    
-		    // Send to server
+		// Send to server
         	if (send(socket_desc, &client_message, strlen(client_message), 0) < 0)
         	{
         		printf("Send failed");
         		return 1;
         	}
         			
-			// Print message client is sending to the client 
-			printf("\nSending Message: %.*s\n", (int)strlen(client_message), client_message);
-			
-			//Receive a reply from the server
+		// Print message client is sending to the client 
+		printf("\nSending Message: %.*s\n", (int)strlen(client_message), client_message);
+
+		//Receive a reply from the server
         	if ((read_size = recv(socket_desc, server_reply, 100, 0)) < 0)
         	{
         		printf("recv failed");
@@ -182,24 +155,24 @@ int main(int argc , char *argv[])
 			// Get the first string from the server reply
 			found = strtok(server_reply, " ");
 		
-    	    // If server reply's first string is k
-            // Process server generated private key
-			if(strcmp(found,"k") == 0) {
-				found = strtok(NULL, " ");
-				// Get the string after the space then convert that into integer
-				gPKa = atoi(found);
-				printf("Server  Replies: %d.  Generated %d \n\n", read_size, gPKa);
-				// Find common key using the server key received 
-				comKey = fastModExpAlg(decToBin(gPKa), g, q);
-				// display common key
-				printf("Common key is %d \n", comKey);
-			}
-			// Otherwise If first string equal to -1 print the message from server 
-			// then loop again
-			else if(strcmp(found, "-1") == 0)
-				printf("Server  Replies: %.*s\n\n", read_size, server_reply);
-    	    else
-    	        printf("Error Unknown Command. \n");
+	    // If server reply's first string is k
+	    // Process server generated private key
+		if(strcmp(found,"k") == 0) {
+			found = strtok(NULL, " ");
+			// Get the string after the space then convert that into integer
+			gPKa = atoi(found);
+			printf("Server  Replies: %d.  Generated %d \n\n", read_size, gPKa);
+			// Find common key using the server key received 
+			comKey = fastModExpAlg(decToBin(gPKa), g, q);
+			// display common key
+			printf("Common key is %d \n", comKey);
+		}
+		// Otherwise If first string equal to -1 print the message from server 
+		// then loop again
+		else if(strcmp(found, "-1") == 0)
+			printf("Server  Replies: %.*s\n\n", read_size, server_reply);
+		else
+			printf("Error Unknown Command. \n");
     	}
     }
   return 0;
